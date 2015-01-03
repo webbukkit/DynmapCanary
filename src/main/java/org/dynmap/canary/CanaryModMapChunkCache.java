@@ -1116,9 +1116,11 @@ public class CanaryModMapChunkCache extends MapChunkCache
                             for(Field ff : f) {
                                 if((chunkCoord == null) && (ff.getType().equals(ChunkCoordIntPair.class))) {
                                     chunkCoord = ff;
+                                    chunkCoord.setAccessible(true);
                                 }
                                 else if((nbtTag == null) && (ff.getType().equals(NBTTagCompound.class))) {
                                     nbtTag = ff;
+                                    nbtTag.setAccessible(true);
                                 }
                             }
                         }

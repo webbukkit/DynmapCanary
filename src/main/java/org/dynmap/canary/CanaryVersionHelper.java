@@ -3,6 +3,7 @@ package org.dynmap.canary;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.canarymod.api.world.Biome;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -23,32 +24,20 @@ public class CanaryVersionHelper {
     /**
      * Get list of defined biomebase objects
      */
-    public Object[] getBiomeBaseList() {
-        return BiomeGenBase.n();
-    }
-    /** 
-     * Get temperature from biomebase
-     */
-    public float getBiomeBaseTemperature(Object bb) {
-        return ((BiomeGenBase)bb).ap;
-    }
-    /** 
-     * Get humidity from biomebase
-     */
-    public float getBiomeBaseHumidity(Object bb) {
-        return ((BiomeGenBase)bb).aq;
+    public Biome[] getBiomeBaseList() {
+        BiomeGenBase[] blist = BiomeGenBase.n();
+        Biome[] rslt = new Biome[blist.length];
+        for (int i = 0; i < blist.length; i++) {
+            if (blist[i] == null) continue;
+            rslt[i] = blist[i].getCanaryBiome();
+        }
+        return rslt;
     }
     /**
      * Get ID string from biomebase
      */
-    public String getBiomeBaseIDString(Object bb) {
-        return ((BiomeGenBase)bb).ah;
-    }
-    /** 
-     * Get ID from biomebase
-     */
-    public int getBiomeBaseID(Object bb) {
-        return ((BiomeGenBase)bb).az;
+    public String getBiomeBaseIDString(Biome bb) {
+        return ((net.canarymod.api.world.CanaryBiome)bb).getHandle().ah;
     }
     /**
      * Get block short name list

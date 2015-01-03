@@ -21,6 +21,7 @@ import net.canarymod.Canary;
 import net.canarymod.api.OfflinePlayer;
 import net.canarymod.api.PlayerReference;
 import net.canarymod.api.entity.living.humanoid.Player;
+import net.canarymod.api.world.Biome;
 import net.canarymod.api.world.Chunk;
 import net.canarymod.api.world.World;
 import net.canarymod.api.world.blocks.Block;
@@ -59,6 +60,7 @@ import net.canarymod.hook.world.LeafDecayHook;
 import net.canarymod.hook.world.PistonExtendHook;
 import net.canarymod.hook.world.PistonRetractHook;
 import net.canarymod.hook.world.RedstoneChangeHook;
+import net.canarymod.hook.world.IgnitionHook.IgnitionCause;
 import net.canarymod.logger.Logman;
 import net.canarymod.plugin.Plugin;
 import net.canarymod.plugin.PluginListener;
@@ -747,18 +749,18 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         
         BiomeMap.loadWellKnownByVersion(mcver);
         /* Find array of biomes in biomebase */
-        Object[] biomelist = helper.getBiomeBaseList();
+        Biome[] biomelist = helper.getBiomeBaseList();
         /* Loop through list, skipping well known biomes */
         for(int i = 0; i < biomelist.length; i++) {
             if (!BiomeMap.byBiomeID(i).isDefault()) continue;
-            Object bb = biomelist[i];
+            Biome bb = biomelist[i];
             if(bb != null) {
                 String id =  helper.getBiomeBaseIDString(bb);
                 if(id == null) {
                    id = "BIOME_" + i;
                 }
-                float tmp = helper.getBiomeBaseTemperature(bb);
-                float hum = helper.getBiomeBaseHumidity(bb);
+                float tmp = bb.getTemperature();
+                float hum = (float) ((double)bb.getRainfall() / 65536.0);
 
                 BiomeMap m = new BiomeMap(i, id, tmp, hum);
                 Log.verboseinfo("Add custom biome [" + m.toString() + "] (" + i + ")");
@@ -1443,11 +1445,15 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
     public class OurBlockBurnTrigger implements PluginListener {
         @HookHandler(priority=Priority.PASSIVE, ignoreCanceled=true)
         public void onBlockBurn(IgnitionHook event) {
+            IgnitionCause ic = event.getCause();
+            if (ic == IgnitionCause.LAVA) {
+                return;
+            }
             Location loc = event.getBlock().getLocation();
             String wn = getWorld(loc.getWorld()).getName();
             sscache.invalidateSnapshot(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
             if(onburn) {
-                mapManager.touch(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), "blockburn");
+                mapManager.touch(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), "blockburn." + ic);
             }
         }
     }
