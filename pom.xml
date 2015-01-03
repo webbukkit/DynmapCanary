@@ -21,7 +21,7 @@
 				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
 				<includes>
-					<include>*.yml</include>
+					<include>*.inf</include>
 					<include>*.txt</include>
 				</includes>
 			</resource>
@@ -29,7 +29,7 @@
 				<directory>src/main/resources</directory>
 				<filtering>false</filtering>
 				<excludes>
-					<exclude>*.yml</exclude>
+					<exclude>*.inf</exclude>
 					<exclude>*.txt</exclude>
 				</excludes>
 			</resource>

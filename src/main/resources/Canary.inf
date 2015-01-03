@@ -1,0 +1,5 @@
+main-class = org.dynmap.canary.DynmapPlugin
+name = dynmap
+author = mikeprimm
+version = ${project.version}-${BUILD_NUMBER}
+language = java
