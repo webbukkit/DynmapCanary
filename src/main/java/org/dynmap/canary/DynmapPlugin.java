@@ -66,7 +66,6 @@ import net.canarymod.plugin.PluginManager;
 import net.canarymod.plugin.Priority;
 import net.canarymod.tasks.ServerTask;
 import net.canarymod.tasks.ServerTaskManager;
-import net.canarymod.tasks.TaskOwner;
 
 import org.dynmap.DynmapChunk;
 import org.dynmap.DynmapCommonAPI;
@@ -203,19 +202,6 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         ModSupportImpl.init();
     }
     
-    private static class OurServerTask extends ServerTask {
-        Runnable task;
-        public OurServerTask(TaskOwner owner, Runnable run, long delay) {
-            super(owner, delay);
-            task = run;
-        }
-
-        @Override
-        public void run() {
-            task.run();
-        }
-    }
-
     /**
      * Server access abstraction class
      */

@@ -1,15 +1,9 @@
 package org.dynmap.canary;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import org.dynmap.Log;
 
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.NibbleArray;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.canarymod.api.nbt.CompoundTag;
+import net.canarymod.api.nbt.ListTag;
 
 /**
  * Represents a static, thread-safe snapshot of chunk of blocks
@@ -34,23 +28,12 @@ public class ChunkSnapshot
     private static final short[] emptyIDs = new short[BLOCKS_PER_SECTION];
     private static final byte[] emptyData = new byte[BLOCKS_PER_SECTION / 2];
     private static final byte[] fullData = new byte[BLOCKS_PER_SECTION / 2];
-    private static Method getvalarray = null;
 
     static
     {
         for (int i = 0; i < fullData.length; i++)
         {
             fullData[i] = (byte)0xFF;
-        }
-        try {
-            Method[] m = NibbleArray.class.getDeclaredMethods();
-            for (Method mm : m) {
-                if (mm.getName().equals("getValueArray")) {
-                    getvalarray = mm;
-                    break;
-                }
-            }
-        } catch (Exception x) {
         }
     }
 
@@ -90,14 +73,14 @@ public class ChunkSnapshot
         this.inhabitedTicks = inhabitedTime;
     }
 
-    public ChunkSnapshot(NBTTagCompound nbt, int worldheight) {
-        this.x = nbt.f("xPos"); // getInteger
-        this.z = nbt.f("zPos"); // getInteger
+    public ChunkSnapshot(CompoundTag nbt, int worldheight) {
+        this.x = nbt.getInt("xPos");
+        this.z = nbt.getInt("zPos");
         this.captureFulltime = 0;
-        this.hmap = nbt.l("HeightMap"); // getIntArray
+        this.hmap = nbt.getIntArray("HeightMap");
         this.sectionCnt = worldheight / 16;
-        if (nbt.c("InhabitedTime")) { // hasKey
-            this.inhabitedTicks = nbt.g("InhabitedTime"); // getLong
+        if (nbt.containsKey("InhabitedTime")) {
+            this.inhabitedTicks = nbt.getLong("InhabitedTime"); // getLong
         }
         else {
             this.inhabitedTicks = 0;
@@ -117,15 +100,15 @@ public class ChunkSnapshot
             this.skylight[i] = fullData;
         }
         /* Get sections */
-        NBTTagList sect = nbt.c("Sections", 10); // getTagList
-        for (int i = 0; i < sect.c(); i++) { // tagCount
-            NBTTagCompound sec = sect.b(i); // getCompoundTagAt
-            byte secnum = sec.d("Y"); // getByte
+        ListTag<CompoundTag> sect = nbt.getListTag("Sections") ;
+        for (int i = 0; i < sect.size(); i++) {
+            CompoundTag sec = sect.get(i);
+            byte secnum = sec.getByte("Y");
             if (secnum >= this.sectionCnt) {
                 Log.info("Section " + (int) secnum + " above world height " + worldheight);
                 continue;
             }
-            byte[] lsb_bytes = sec.k("Blocks"); // getByteArray
+            byte[] lsb_bytes = sec.getByteArray("Blocks"); // getByteArray
             short[] blkids = new short[BLOCKS_PER_SECTION];
             this.blockids[secnum] = blkids;
             int len = BLOCKS_PER_SECTION;
@@ -133,8 +116,8 @@ public class ChunkSnapshot
             for(int j = 0; j < len; j++) {
                 blkids[j] = (short)(0xFF & lsb_bytes[j]); 
             }
-            if (sec.c("Add")) { // hasKey    /* If additional data, add it */
-                byte[] msb = sec.k("Add"); // getByteArray
+            if (sec.containsKey("Add")) { /* If additional data, add it */
+                byte[] msb = sec.getByteArray("Add");
                 len = BLOCKS_PER_SECTION / 2;
                 if(len > msb.length) len = msb.length;
                 for (int j = 0; j < len; j++) {
@@ -146,32 +129,20 @@ public class ChunkSnapshot
                     blkids[(j << 1) + 1] |= (b & 0xF0) << 4;
                 }
             }
-            this.blockdata[secnum] = sec.k("Data"); // getByteArray
-            this.emitlight[secnum] = sec.k("BlockLight"); // getByteArray
-            if (sec.c("SkyLight")) {    // hasKey
-                this.skylight[secnum] = sec.k("SkyLight"); // getByteArray
+            this.blockdata[secnum] = sec.getByteArray("Data");
+            this.emitlight[secnum] = sec.getByteArray("BlockLight");
+            if (sec.containsKey("SkyLight")) {
+                this.skylight[secnum] = sec.getByteArray("SkyLight");
             }
             this.empty[secnum] = false;
         }
         /* Get biome data */
-        if (nbt.c("Biomes")) { // hasKey
-            this.biome = nbt.k("Biomes"); // getByteArray
+        if (nbt.containsKey("Biomes")) {
+            this.biome = nbt.getByteArray("Biomes");
         }
         else {
             this.biome = new byte[COLUMNS_PER_CHUNK];
         }
-    }
-    
-    private static byte[] getValueArray(NibbleArray na) {
-        if(getvalarray != null) {
-            try {
-                return (byte[])getvalarray.invoke(na);
-            } catch (IllegalArgumentException e) {
-            } catch (IllegalAccessException e) {
-            } catch (InvocationTargetException e) {
-            }
-        }
-        return na.a(); // getData
     }
 
     public int getX()

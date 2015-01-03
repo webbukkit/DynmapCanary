@@ -1,19 +1,11 @@
 package org.dynmap.canary;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-import net.canarymod.api.entity.living.humanoid.Player;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.world.biome.BiomeGenBase;
-
-import org.dynmap.Log;
 
 /**
  * Helper for isolation of canary version specific issues

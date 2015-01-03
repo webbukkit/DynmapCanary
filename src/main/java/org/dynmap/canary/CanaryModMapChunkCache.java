@@ -11,19 +11,21 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
+import net.canarymod.api.nbt.BaseTag;
+import net.canarymod.api.nbt.ByteArrayTag;
+import net.canarymod.api.nbt.ByteTag;
+import net.canarymod.api.nbt.CanaryBaseTag;
+import net.canarymod.api.nbt.CompoundTag;
+import net.canarymod.api.nbt.DoubleTag;
+import net.canarymod.api.nbt.FloatTag;
+import net.canarymod.api.nbt.IntArrayTag;
+import net.canarymod.api.nbt.IntTag;
+import net.canarymod.api.nbt.ListTag;
+import net.canarymod.api.nbt.LongTag;
+import net.canarymod.api.nbt.ShortTag;
+import net.canarymod.api.nbt.StringTag;
 import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagByte;
-import net.minecraft.nbt.NBTTagByteArray;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagDouble;
-import net.minecraft.nbt.NBTTagFloat;
-import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.nbt.NBTTagIntArray;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagLong;
-import net.minecraft.nbt.NBTTagShort;
-import net.minecraft.nbt.NBTTagString;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -1082,7 +1084,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
 
     private static boolean didError = false;
     
-    public NBTTagCompound readChunk(int x, int z) {
+    public CompoundTag readChunk(int x, int z) {
         if((cps == null) || (!(cps.f /*chunkLoader*/ instanceof AnvilChunkLoader)) ||
                 (((chunksToRemove == null) || pendingAnvilChunksCoordinates == null)) ||
                 (syncLockObject == null)) {
@@ -1139,66 +1141,69 @@ public class CanaryModMapChunkCache extends MapChunkCache
                 }
                 rslt = CompressedStreamTools.a(str); // read()
             }
-            if(rslt != null) 
-                rslt = rslt.m("Level"); // getCompoundTag
-            return rslt;
+            CompoundTag crslt = null;
+            if(rslt != null)  {
+                crslt = (CompoundTag) CanaryBaseTag.wrap(rslt);
+                crslt = crslt.getCompoundTag("Level");
+            }
+            return crslt;
         } catch (Exception exc) {
             Log.severe("Exception during readChunk(" + x + "," + z + ")", exc);
             return null;
         }
     }
     
-    private Object getNBTValue(NBTBase v) {
+    private Object getNBTValue(BaseTag<?> v) {
         Object val = null;
-        switch(v.a()) { // getId
+        switch(v.getTypeId()) {
             case 1: // Byte
-                val = Byte.valueOf(((NBTTagByte)v).f() /*getByte()*/);
+                val = Byte.valueOf(((ByteTag)v).getByteValue());
                 break;
             case 2: // Short
-                val = Short.valueOf(((NBTTagShort)v).e() /*getShort()*/);
+                val = Short.valueOf(((ShortTag)v).getShortValue());
                 break;
             case 3: // Int
-                val = Integer.valueOf(((NBTTagInt)v).d() /*getInt()*/);
+                val = Integer.valueOf(((IntTag)v).getIntValue());
                 break;
             case 4: // Long
-                val = Long.valueOf(((NBTTagLong)v).c() /*getLong()*/);
+                val = Long.valueOf(((LongTag)v).getLongValue());
                 break;
             case 5: // Float
-                val = Float.valueOf(((NBTTagFloat)v).h() /*getFloat()*/);
+                val = Float.valueOf(((FloatTag)v).getFloatValue());
                 break;
             case 6: // Double
-                val = Double.valueOf(((NBTTagDouble)v).g() /*getDouble()*/);
+                val = Double.valueOf(((DoubleTag)v).getDoubleValue());
                 break;
             case 7: // Byte[]
-                val = ((NBTTagByteArray)v).c() /*getByteArray()*/;
+                val = ((ByteArrayTag)v).getValue();
                 break;
             case 8: // String
-                val = ((NBTTagString)v).a_() /*getString()*/;
+                val = ((StringTag)v).getValue();
                 break;
             case 9: // List
-                NBTTagList tl = (NBTTagList) v;
+                ListTag<BaseTag<?>> tl = (ListTag<BaseTag<?>>) v;
                 ArrayList<Object> vlist = new ArrayList<Object>();
-                int type = tl.f() /*getTagType()*/;
-                for (int i = 0; i < tl.c() /*tagCount()*/; i++) {
+                int type = tl.getTypeId();
+                for (int i = 0; i < tl.size(); i++) {
+                    BaseTag<?> bt = tl.get(i);
                     switch (type) {
                         case 5:
-                            float fv = tl.e(i) /*getFloat(i)*/;
+                            float fv = ((FloatTag)bt).getFloatValue();
                             vlist.add(fv);
                             break;
                         case 6:
-                            double dv = tl.d(i) /*getDouble(i)*/;
+                            double dv = ((DoubleTag)bt).getDoubleValue();
                             vlist.add(dv);
                             break;
                         case 8:
-                            String sv = tl.f(i) /*getStringTagAt(i)*/;
+                            String sv = ((StringTag)bt).getValue();
                             vlist.add(sv);
                             break;
                         case 10:
-                            NBTTagCompound tc = tl.b(i) /*getCompoundTagAt(i)*/;
-                            vlist.add(getNBTValue(tc));
+                            vlist.add(getNBTValue(bt));
                             break;
                         case 11:
-                            int[] ia = tl.c(i) /*getIntArray(i)*/;
+                            int[] ia = ((IntArrayTag)bt).getValue();
                             vlist.add(ia);
                             break;
                     }
@@ -1206,17 +1211,16 @@ public class CanaryModMapChunkCache extends MapChunkCache
                 val = vlist;
                 break;
             case 10: // Map
-                NBTTagCompound tc = (NBTTagCompound) v;
+                CompoundTag tc = (CompoundTag) v;
                 HashMap<String, Object> vmap = new HashMap<String, Object>();
-                for (Object t : tc.c() /*getKeySet()*/) {
-                    String st = (String) t;
-                    NBTBase tg = tc.a(st) /*getTag(st)*/;
-                    vmap.put(st, getNBTValue(tg));
+                for (String t : tc.keySet()) {
+                    BaseTag<?> tg = tc.get(t);
+                    vmap.put(t, getNBTValue(tg));
                 }
                 val = vmap;
                 break;
             case 11: // Int[]
-                val = ((NBTTagIntArray)v).c(); //getIntArray();
+                val = ((IntArrayTag)v).getValue();
                 break;
         }
         return val;
@@ -1284,19 +1288,20 @@ public class CanaryModMapChunkCache extends MapChunkCache
     }
 
     // Prep snapshot and add to cache
-    private SnapshotRec prepChunkSnapshot(DynmapChunk chunk, NBTTagCompound nbt) {
+    private SnapshotRec prepChunkSnapshot(DynmapChunk chunk, CompoundTag nbt) {
         ChunkSnapshot ss = new ChunkSnapshot(nbt, dw.worldheight);
         DynIntHashMap tileData = new DynIntHashMap();
 
-        NBTTagList tiles = nbt.c("TileEntities", 10); //getTagList
-        if(tiles == null) tiles = new NBTTagList();
+        ListTag<CompoundTag> tiles = nbt.getListTag("TileEntities");
+        int tcnt = 0;
+        if (tiles != null) tcnt = tiles.size();
         /* Get tile entity data */
         List<Object> vals = new ArrayList<Object>();
-        for(int tid = 0; tid < tiles.c() /*tagCount()*/; tid++) {
-            NBTTagCompound tc = tiles.b(tid); //getCompoundTagAt(tid);
-            int tx = tc.f("x"); //getInteger
-            int ty = tc.f("y"); //getInteger
-            int tz = tc.f("z"); //getInteger
+        for(int tid = 0; tid < tcnt; tid++) {
+            CompoundTag tc = tiles.get(tid);
+            int tx = tc.getInt("x");
+            int ty = tc.getInt("y");
+            int tz = tc.getInt("z");
             int cx = tx & 0xF;
             int cz = tz & 0xF;
             int blkid = ss.getBlockTypeId(cx, ty, cz);
@@ -1305,7 +1310,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
             if(te_fields != null) {
                 vals.clear();
                 for(String id: te_fields) {
-                    NBTBase v = tc.a(id); //getTag(id);  /* Get field */
+                    BaseTag<?> v = tc.get(id);  /* Get field */
                     if(v != null) {
                         Object val = getNBTValue(v);
                         if(val != null) {
@@ -1368,7 +1373,8 @@ public class CanaryModMapChunkCache extends MapChunkCache
                     } catch (InvocationTargetException e) {
                         Log.severe("Error3 during NBT read", e);
                     }                
-                    SnapshotRec ssr = prepChunkSnapshot(chunk, nbt);
+                    CompoundTag ctag = (CompoundTag) CanaryBaseTag.wrap(nbt);
+                    SnapshotRec ssr = prepChunkSnapshot(chunk, ctag);
                     ss = ssr.ss;
                     tileData = ssr.tileData;
                 }
@@ -1435,7 +1441,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
                 endChunkLoad(startTime, ChunkStats.CACHED_SNAPSHOT_HIT);
             }
             else {
-                NBTTagCompound nbt = readChunk(chunk.x, chunk.z);
+                CompoundTag nbt = readChunk(chunk.x, chunk.z);
                 // If read was good
                 if (nbt != null) {
                     ChunkSnapshot ss;

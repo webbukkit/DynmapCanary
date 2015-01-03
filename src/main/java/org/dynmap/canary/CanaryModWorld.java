@@ -1,14 +1,9 @@
 package org.dynmap.canary;
 /**
- * Bukkit specific implementation of DynmapWorld
+ * Canary specific implementation of DynmapWorld
  */
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.Arrays;
 import java.util.List;
 
-import net.canarymod.api.world.Chunk;
 import net.canarymod.api.world.DimensionType;
 import net.canarymod.api.world.World;
 import net.canarymod.api.world.position.Location;
@@ -19,7 +14,6 @@ import org.dynmap.DynmapChunk;
 import org.dynmap.DynmapLocation;
 import org.dynmap.DynmapWorld;
 import org.dynmap.utils.MapChunkCache;
-import org.dynmap.utils.TileFlags;
 
 public class CanaryModWorld extends DynmapWorld {
     private World world;
