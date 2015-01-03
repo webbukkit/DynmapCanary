@@ -120,7 +120,7 @@ public class ChunkSnapshot
         NBTTagList sect = nbt.c("Sections", 10); // getTagList
         for (int i = 0; i < sect.c(); i++) { // tagCount
             NBTTagCompound sec = sect.b(i); // getCompoundTagAt
-            byte secnum = sec.b("Y"); // getByte
+            byte secnum = sec.d("Y"); // getByte
             if (secnum >= this.sectionCnt) {
                 Log.info("Section " + (int) secnum + " above world height " + worldheight);
                 continue;
@@ -172,53 +172,6 @@ public class ChunkSnapshot
             }
         }
         return na.a(); // getData
-    }
-    public ChunkSnapshot(Chunk chunk, int worldheight)
-    {
-        this(worldheight, chunk.a /*xPosition*/, chunk.b /* zPosition */, chunk.p().K() /*getWorld().getWorldTime() */, 
-                chunk.w() /* getInhabitedTime() */);
-        
-        /* Copy biome data */
-        System.arraycopy(chunk.k() /* getBiomeArray()*/, 0, biome, 0, COLUMNS_PER_CHUNK);
-        ExtendedBlockStorage[] ebs = chunk.h() /* getBlockStorageArray() */;
-
-        /* Copy sections */
-        for (int i = 0; i < this.sectionCnt; i++)
-        {
-            ExtendedBlockStorage eb = (i < ebs.length) ? ebs[i] : null;
-
-            if ((eb != null) && (eb.a() /*isEmpty()*/ == false))
-            {
-                this.empty[i] = false;
-                /* Copy base IDs */
-                /* Copy block data */
-                byte[] blockd = new byte[BLOCKS_PER_SECTION / 2];
-                short blockids[] = new short[BLOCKS_PER_SECTION];
-                char[] blkd = eb.g(); // getData()
- 
-                for (int j = 0; j < BLOCKS_PER_SECTION; j++)
-                {
-                    blockids[j] = (short) (blkd[j] & 0xFFF);
-                    blockd[j / 2] = (byte)(blockd[j / 2] | ((0xF & (blkd[j] >> 12)) << (4 * (j & 1))));
-                }
-                this.blockids[i] = blockids;
-                this.blockdata[i] = blockd;
-                /* Copy block lighting data */
-                this.emitlight[i] = new byte[BLOCKS_PER_SECTION / 2];
-                System.arraycopy(getValueArray(eb.h() /*getBlocklightArray()*/), 0, this.emitlight[i], 0, BLOCKS_PER_SECTION / 2);
-                /* Copy sky lighting data */
-                if(eb.i() /*getSkylightArray()*/ != null) {
-                	this.skylight[i] = new byte[BLOCKS_PER_SECTION / 2];
-                	System.arraycopy(getValueArray(eb.i() /*getSkylightArray()*/), 0, this.skylight[i], 0, BLOCKS_PER_SECTION / 2);
-                }
-                else {
-                	this.skylight[i] = ChunkSnapshot.emptyData;
-                }
-            }
-        }
-
-        /* Save height map */
-        System.arraycopy(chunk.q() /*getHeightMap()*/, 0, this.hmap, 0, hmap.length);
     }
 
     public int getX()

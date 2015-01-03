@@ -1143,6 +1143,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
                 rslt = rslt.m("Level"); // getCompoundTag
             return rslt;
         } catch (Exception exc) {
+            Log.severe("Exception during readChunk(" + x + "," + z + ")", exc);
             return null;
         }
     }
@@ -1361,8 +1362,11 @@ public class CanaryModMapChunkCache extends MapChunkCache
                     try {
                         writechunktonbt.invoke(cps.f/*chunkLoader*/, cps.c/*loadChunk*/(chunk.x, chunk.z), w, nbt);
                     } catch (IllegalAccessException e) {
+                        Log.severe("Error during NBT read", e);
                     } catch (IllegalArgumentException e) {
+                        Log.severe("Error2 during NBT read", e);
                     } catch (InvocationTargetException e) {
+                        Log.severe("Error3 during NBT read", e);
                     }                
                     SnapshotRec ssr = prepChunkSnapshot(chunk, nbt);
                     ss = ssr.ss;
