@@ -843,8 +843,9 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         version = getVersion();
 
         /* Get MC version */
-        String mcver = Canary.getServer().getServerVersion();
-
+        String canaryver = Canary.getServer().getCanaryModVersion();
+        String mcver = canaryver.split("-")[0];
+        
         /* Load extra biomes, if any */
         loadExtraBiomes(mcver);
              
