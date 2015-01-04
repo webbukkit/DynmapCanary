@@ -37,7 +37,7 @@ public class CanaryVersionHelper {
      * Get ID string from biomebase
      */
     public String getBiomeBaseIDString(Biome bb) {
-        return ((net.canarymod.api.world.CanaryBiome)bb).getHandle().ah;
+        return ((net.canarymod.api.world.CanaryBiome)bb).getHandle().af;
     }
     /**
      * Get block short name list
@@ -45,7 +45,7 @@ public class CanaryVersionHelper {
     public String[] getBlockShortNames() {
         String[] lst = new String[4096];
         for (int i = 0; i < 4096; i++) {
-            Block b = Block.c(i);   // Get block
+            Block b = Block.e(i);   // Get block
             if (b != null) {
                 lst[i] = b.a();
                 if (lst[i].startsWith("tile.")) {
@@ -64,7 +64,7 @@ public class CanaryVersionHelper {
         for (int i = 0; i < 256; i++) {
             BiomeGenBase b = bb[i];
             if (b == null) continue;
-            lst[i] = b.ah;
+            lst[i] = b.af;
         }
         return lst;
     }
@@ -75,9 +75,9 @@ public class CanaryVersionHelper {
         int[] lst = new int[4096];
         List<Material> byid = new ArrayList<Material>();
         for (int i = 0; i < 4096; i++) {
-            Block b = Block.c(i);   // Get block
+            Block b = Block.e(i);   // Get block
             if (b != null) {
-                Material m = b.r();
+                Material m = b.o();
                 int idx = byid.indexOf(m);
                 if (idx < 0) {
                     idx = byid.size();

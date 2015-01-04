@@ -127,7 +127,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
             }
 
             initialize(x0, y0, z0);
-            worldheight = w.U() /*getHeight()*/;
+            worldheight = w.R() /*getHeight()*/;
         }
         @Override
         public final void initialize(int x0, int y0, int z0)
@@ -1004,7 +1004,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
         this.w = dw.getNMSWorld();
         if(dw.isLoaded()) {
         	/* Check if world's provider is ChunkProviderServer */
-        	IChunkProvider cp = this.w.N(); //getChunkProvider();
+        	IChunkProvider cp = this.w.L(); //getChunkProvider();
 
         	if (cp instanceof ChunkProviderServer)
         	{
@@ -1155,7 +1155,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
         }
     }
     
-    private Object getNBTValue(BaseTag<?> v) {
+    private Object getNBTValue(BaseTag v) {
         Object val = null;
         switch(v.getTypeId()) {
             case 1: // Byte
@@ -1183,11 +1183,11 @@ public class CanaryModMapChunkCache extends MapChunkCache
                 val = ((StringTag)v).getValue();
                 break;
             case 9: // List
-                ListTag<BaseTag<?>> tl = (ListTag<BaseTag<?>>) v;
+                ListTag<BaseTag> tl = (ListTag<BaseTag>) v;
                 ArrayList<Object> vlist = new ArrayList<Object>();
                 int type = tl.getTypeId();
                 for (int i = 0; i < tl.size(); i++) {
-                    BaseTag<?> bt = tl.get(i);
+                    BaseTag bt = tl.get(i);
                     switch (type) {
                         case 5:
                             float fv = ((FloatTag)bt).getFloatValue();
@@ -1216,7 +1216,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
                 CompoundTag tc = (CompoundTag) v;
                 HashMap<String, Object> vmap = new HashMap<String, Object>();
                 for (String t : tc.keySet()) {
-                    BaseTag<?> tg = tc.get(t);
+                    BaseTag tg = tc.get(t);
                     vmap.put(t, getNBTValue(tg));
                 }
                 val = vmap;
@@ -1312,7 +1312,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
             if(te_fields != null) {
                 vals.clear();
                 for(String id: te_fields) {
-                    BaseTag<?> v = tc.get(id);  /* Get field */
+                    BaseTag v = tc.get(id);  /* Get field */
                     if(v != null) {
                         Object val = getNBTValue(v);
                         if(val != null) {
@@ -1632,7 +1632,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
         {
         	if(b[i] == null) continue;
         	
-            String bs = b[i].ah; //biomeName;
+            String bs = b[i].af; //biomeName;
 
             for (int j = 0; j < bm.length; j++)
             {

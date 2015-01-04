@@ -7,7 +7,6 @@ import java.util.List;
 import net.canarymod.api.world.DimensionType;
 import net.canarymod.api.world.World;
 import net.canarymod.api.world.position.Location;
-import net.minecraft.util.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 
 import org.dynmap.DynmapChunk;
@@ -149,7 +148,7 @@ public class CanaryModWorld extends DynmapWorld {
     public int getSkyLightLevel(int x, int y, int z) {
         if(nmsWorld != null) {
             if ((y >= 0) && (y < this.worldheight)) {
-                return nmsWorld.b(EnumSkyBlock.SKY, new BlockPos(x, y, z));
+                return nmsWorld.b(EnumSkyBlock.Sky, x, y, z);
             }
             else {
                 return 15;

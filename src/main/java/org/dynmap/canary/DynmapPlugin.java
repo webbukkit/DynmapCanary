@@ -68,6 +68,7 @@ import net.canarymod.hook.world.RedstoneChangeHook;
 import net.canarymod.hook.world.IgnitionHook.IgnitionCause;
 import net.canarymod.hook.world.TreeGrowHook;
 import net.canarymod.logger.Logman;
+import net.canarymod.plugin.IPluginManager;
 import net.canarymod.plugin.Plugin;
 import net.canarymod.plugin.PluginListener;
 import net.canarymod.plugin.PluginManager;
@@ -103,7 +104,7 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
     public PlayerList playerList;
     private MapManager mapManager;
     public static DynmapPlugin plugin;
-    public PluginManager pm;
+    public IPluginManager pm;
     private BukkitEnableCoreCallback enabCoreCB = new BukkitEnableCoreCallback();
     private HashMap<String, CanaryModWorld> world_by_name = new HashMap<String, CanaryModWorld>();
 
@@ -205,7 +206,7 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
     public DynmapPlugin() {
         plugin = this;
         helper = CanaryVersionHelper.getHelper();
-        pm = Canary.pluginManager();
+        pm = Canary.manager();
             
         ModSupportImpl.init();
     }
@@ -257,7 +258,7 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         }
         @Override
         public void reload() {
-            PluginManager pluginManager = Canary.pluginManager();
+            IPluginManager pluginManager = Canary.manager();
             try {
                 pluginManager.reloadPlugin("dynmap");
             } catch (PluginLoadFailedException e) {
@@ -612,9 +613,9 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         @Override
         public String getDisplayName() {
             if (player instanceof Player) {
-                ChatComponent dname = ((Player)player).getDisplayNameComponent();
+                String dname = ((Player)player).getDisplayName();
                 if (dname != null) {
-                    return dname.getText();
+                    return dname;
                 }
             }
             return player.getName();
@@ -645,8 +646,8 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         }
         @Override
         public InetSocketAddress getAddress() {
-            if (player instanceof Player) {
-                return (InetSocketAddress) ((Player) player).getNetServerHandler().getSocketAdress();
+            if (player instanceof CanaryPlayer) {
+                return (InetSocketAddress) ((CanaryPlayer) player).getHandle().a.a.b();
             }
             return null;
         }
@@ -666,7 +667,7 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         @Override
         public int getArmorPoints() {
             if (player instanceof CanaryPlayer) {
-                return ((CanaryPlayer)player).getHandle().bq();
+                return ((CanaryPlayer)player).getHandle().aV();
             }
             return 0;
         }
@@ -690,9 +691,9 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         }
         @Override
         public boolean isInvisible() {
-            if(player != null) {
-                return ((Player)player).isHiddenFromAll();
-            }
+            //if(player != null) {
+            //    return ((Player)player).isHiddenFromAll();
+            //}
             return false;
         }
         @Override
@@ -843,8 +844,9 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         version = getVersion();
 
         /* Get MC version */
-        String mcver = Canary.getServer().getServerVersion();
-
+        String canaryver = Canary.getServer().getCanaryModVersion();
+        String mcver = canaryver.split("-")[0];
+        
         /* Load extra biomes, if any */
         loadExtraBiomes(mcver);
              
