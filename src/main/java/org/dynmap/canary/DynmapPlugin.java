@@ -53,14 +53,18 @@ import net.canarymod.hook.system.UnloadWorldHook;
 import net.canarymod.hook.world.BlockGrowHook;
 import net.canarymod.hook.world.BlockPhysicsHook;
 import net.canarymod.hook.world.BlockUpdateHook;
+import net.canarymod.hook.world.ChunkCreatedHook;
 import net.canarymod.hook.world.DecorateHook;
 import net.canarymod.hook.world.ExplosionHook;
+import net.canarymod.hook.world.FlowHook;
 import net.canarymod.hook.world.IgnitionHook;
 import net.canarymod.hook.world.LeafDecayHook;
+import net.canarymod.hook.world.LiquidDestroyHook;
 import net.canarymod.hook.world.PistonExtendHook;
 import net.canarymod.hook.world.PistonRetractHook;
 import net.canarymod.hook.world.RedstoneChangeHook;
 import net.canarymod.hook.world.IgnitionHook.IgnitionCause;
+import net.canarymod.hook.world.TreeGrowHook;
 import net.canarymod.logger.Logman;
 import net.canarymod.plugin.Plugin;
 import net.canarymod.plugin.PluginListener;
@@ -840,7 +844,7 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         registerPlayerLoginListener();
 
         /* Get and initialize data folder */
-        File dataDirectory = new File("config" + File.separator + "dynmap");
+        File dataDirectory = new File(Canary.getWorkingDirectory(), "config" + File.separator + "dynmap");
         if(dataDirectory.exists() == false)
             dataDirectory.mkdirs();
          
@@ -1111,9 +1115,11 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
     private boolean onplayermove;
     private boolean ongeneratechunk;
     private boolean onexplosion;
-    //private boolean onstructuregrow;
+    private boolean onstructuregrow;
     private boolean onblockgrow;
     private boolean onblockredstone;
+    private boolean onblockupdate;
+    private boolean onliquiddestroy;
 
     private void registerEvents() {
         
@@ -1129,6 +1135,9 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         onblockphysics = core.isTrigger("blockphysics");
         onpiston = core.isTrigger("pistonmoved");
         onblockredstone = core.isTrigger("blockredstone");
+        onstructuregrow = core.isTrigger("structuregrow");
+        onblockupdate = core.isTrigger("blockupdate");
+        onliquiddestroy = core.isTrigger("liquiddestroy");
         
         if(onplace) {
             Canary.hooks().registerListener(new OurBlockPlaceTrigger(), this);
@@ -1144,6 +1153,10 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
 
         if(onburn) {
             Canary.hooks().registerListener(new OurBlockBurnTrigger(), this);
+        }
+        
+        if(onliquiddestroy) {
+            Canary.hooks().registerListener(new OurLiquidDestroyTrigger(), this);
         }
         
         if(onblockphysics) {
@@ -1213,6 +1226,10 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
             Canary.hooks().registerListener(new OurPlayerJoinTrigger(), this);
         }
 
+        /* Register block update handler */
+        if (onblockupdate) {
+            Canary.hooks().registerListener(new OurBlockUpdateTrigger(), this);
+        }
         onplayermove = core.isTrigger("playermove");
         
         if(onplayermove) {
@@ -1223,7 +1240,6 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         onexplosion = core.isTrigger("explosion");
         Canary.hooks().registerListener(new OurEntityTrigger(), this);
         
-        //onstructuregrow = core.isTrigger("structuregrow");
         // To link configuration to real loaded worlds.
         Canary.hooks().registerListener(new OurWorldTrigger(), this);
 
@@ -1281,40 +1297,28 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
                 core.processWorldUnload(w);
             }
         }
-//        @HookHandler(priority=Priority.PASSIVE, ignoreCanceled=true)
-//        public void onStructureGrow(StructureGrowEvent event) {
-//            Location loc = event.getLocation();
-//            String wname = getWorld(loc.getWorld()).getName();
-//            int minx, maxx, miny, maxy, minz, maxz;
-//            minx = maxx = loc.getBlockX();
-//            miny = maxy = loc.getBlockY();
-//            minz = maxz = loc.getBlockZ();
-//            /* Calculate volume impacted by explosion */
-//            List<BlockState> blocks = event.getBlocks();
-//            for(BlockState b: blocks) {
-//                int x = b.getX();
-//                if(x < minx) minx = x;
-//                if(x > maxx) maxx = x;
-//                int y = b.getY();
-//                if(y < miny) miny = y;
-//                if(y > maxy) maxy = y;
-//                int z = b.getZ();
-//                if(z < minz) minz = z;
-//                if(z > maxz) maxz = z;
-//            }
-//            sscache.invalidateSnapshot(wname, minx, miny, minz, maxx, maxy, maxz);
-//            if(onstructuregrow) {
-//                mapManager.touchVolume(wname, minx, miny, minz, maxx, maxy, maxz, "structuregrow");
-//            }
-//        }
+        @HookHandler(priority=Priority.PASSIVE, ignoreCanceled=true)
+        public void onStructureGrow(TreeGrowHook event) {
+            if (onstructuregrow)
+                checkBlock(event.getSapling(), "structuregrow");
+        }
+
     }
     public class OurChunkTrigger implements PluginListener {
         @HookHandler(priority=Priority.PASSIVE, ignoreCanceled=true)
-        public void onChunkPopulate(DecorateHook event) {
+        public void onChunkPopulate(ChunkCreatedHook event) {
+            Chunk c = event.getChunk();
+            int maxy = 0;
+            int[] hmap = c.getHeightMap();
+            int[] hmap2 = c.getPrecipitationHeightMap();
+            for (int i = 0; i < hmap.length; i++) {
+                if (hmap[i] > maxy) maxy = hmap[i];
+                if (hmap2[i] > maxy) maxy = hmap2[i];
+            }
             /* Touch extreme corners */
-            int x = event.getX() << 4;
-            int z = event.getZ() << 4;
-            mapManager.touchVolume(getWorld(event.getWorld()).getName(), x, 0, z, x+15, 255, z+16, "chunkpopulate");
+            int x = c.getX() << 4;
+            int z = c.getZ() << 4;
+            mapManager.touchVolume(getWorld(event.getWorld()).getName(), x, 0, z, x+15, maxy, z+16, "chunkpopulate");
         }
     }
     public class OurEntityTrigger implements PluginListener {
@@ -1424,12 +1428,13 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
     }
     public class OurBlockFromToTrigger implements PluginListener {
         @HookHandler(priority=Priority.PASSIVE, ignoreCanceled=true)
-        public void onBlockFromTo(BlockUpdateHook event) {
-            Block b = event.getBlock();
+        public void onBlockFromTo(FlowHook event) {
+            Block b = event.getBlockFrom();
             BlockType m = b.getType();
             if((m != BlockType.WoodPlate) && (m != BlockType.StonePlate) && (m != null)) 
                 checkBlock(b, "blockfromto");
-            m = event.getNewBlockType();
+            b = event.getBlockTo();
+            m = b.getType();
             if((m != BlockType.WoodPlate) && (m != BlockType.StonePlate) && (m != null)) 
                 checkBlock(b, "blockfromto");
         }
@@ -1491,6 +1496,12 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
             mapManager.touch(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), "blockplace");
         }
     }
+    public class OurLiquidDestroyTrigger implements PluginListener {
+        @HookHandler(priority=Priority.PASSIVE, ignoreCanceled=true)
+        public void onLiquidDestroy(LiquidDestroyHook event) {
+            checkBlock(event.getBlock(), "liquiddestroy");
+        }
+    }
     public class OurSignChangeTrigger implements PluginListener {
         @HookHandler(ignoreCanceled=true,priority=Priority.PASSIVE)
         public void onSignChange(SignChangeHook evt) {
@@ -1545,6 +1556,12 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
                 getWorld(l.getWorld()).getName(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
         }
     }
+    public class OurBlockUpdateTrigger implements PluginListener {
+        @HookHandler(ignoreCanceled=true,priority=Priority.PASSIVE)
+        public void onBlockUpdate(BlockUpdateHook evt) {
+            checkBlock(evt.getBlock(), "blockupdate");
+        }
+    }
     public class OurPlayerConnectionTrigger implements PluginListener {
         @HookHandler(priority=Priority.PASSIVE, ignoreCanceled=true)
         public void onPlayerJoin(ConnectionHook evt) {
@@ -1562,6 +1579,5 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
             DynmapPlayer dp = new BukkitPlayer(evt.getPlayer());
             core.listenerManager.processPlayerEvent(EventType.PLAYER_QUIT, dp);
         }
-    };
-
+    }
 }
