@@ -153,7 +153,7 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
     }
 
     private final CanaryModWorld getWorldByName(String name) {
-        if((last_world != null) && (last_world.getName().equals(name))) {
+        if((last_world != null) && (last_world.getFqName().equals(name))) {
             return last_bworld;
         }
         return world_by_name.get(name);
@@ -162,10 +162,10 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         if(last_world == w) {
             return last_bworld;
         }
-        CanaryModWorld bw = world_by_name.get(w.getName());
+        CanaryModWorld bw = world_by_name.get(w.getFqName());
         if(bw == null) {
             bw = new CanaryModWorld(w);
-            world_by_name.put(w.getName(), bw);
+            world_by_name.put(w.getFqName(), bw);
         }
         else if(bw.isLoaded() == false) {
             bw.setWorldLoaded(w);
@@ -176,7 +176,7 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         return bw;
     }
     final void removeWorld(World w) {
-        world_by_name.remove(w.getName());
+        world_by_name.remove(w.getFqName());
         if(w == last_world) {
             last_world = null;
             last_bworld = null;
@@ -1058,7 +1058,7 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
     }
     
     private static DynmapLocation toLoc(Location l) {
-        return new DynmapLocation(DynmapWorld.normalizeWorldName(l.getWorld().getName()), l.getBlockX(), l.getBlockY(), l.getBlockZ());
+        return new DynmapLocation(DynmapWorld.normalizeWorldName(l.getWorld().getFqName()), l.getBlockX(), l.getBlockY(), l.getBlockZ());
     }
     
     private void registerPlayerLoginListener() {

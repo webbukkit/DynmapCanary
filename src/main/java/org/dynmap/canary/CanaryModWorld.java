@@ -23,7 +23,7 @@ public class CanaryModWorld extends DynmapWorld {
     private DynmapLocation spawnloc = new DynmapLocation();
     
     public CanaryModWorld(World w) {
-        this(w.getName(), w.getHeight(), 64, w.getType());
+        this(w.getFqName(), w.getHeight(), 64, w.getType());
         setWorldLoaded(w);
         //new Permission("dynmap.world." + getName(), "Dynmap access for world " + getName(), PermissionDefault.OP);
     }
@@ -77,7 +77,7 @@ public class CanaryModWorld extends DynmapWorld {
             spawnloc.x = sloc.getBlockX();
             spawnloc.y = sloc.getBlockY();
             spawnloc.z = sloc.getBlockZ(); 
-            spawnloc.world = normalizeWorldName(sloc.getWorld().getName());
+            spawnloc.world = normalizeWorldName(sloc.getWorld().getFqName());
         }
         return spawnloc;
     }
