@@ -289,9 +289,6 @@ render-triggers:
   - leavesdecay
   - blockburn
   - chunkgenerated
-  - blockformed
-  - blockfaded
-  - blockspread
   - pistonmoved
   - explosion
   #- blockfromto

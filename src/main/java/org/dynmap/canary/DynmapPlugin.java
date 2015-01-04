@@ -20,6 +20,8 @@ import java.util.concurrent.FutureTask;
 import net.canarymod.Canary;
 import net.canarymod.api.OfflinePlayer;
 import net.canarymod.api.PlayerReference;
+import net.canarymod.api.chat.ChatComponent;
+import net.canarymod.api.entity.living.humanoid.CanaryPlayer;
 import net.canarymod.api.entity.living.humanoid.Player;
 import net.canarymod.api.world.Biome;
 import net.canarymod.api.world.Chunk;
@@ -609,6 +611,12 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         }
         @Override
         public String getDisplayName() {
+            if (player instanceof Player) {
+                ChatComponent dname = ((Player)player).getDisplayNameComponent();
+                if (dname != null) {
+                    return dname.getText();
+                }
+            }
             return player.getName();
         }
         @Override
@@ -657,10 +665,10 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         }
         @Override
         public int getArmorPoints() {
-//            if(player != null)
-//                return Armor.getArmorPoints(player);
-//            else
-                return 0;
+            if (player instanceof CanaryPlayer) {
+                return ((CanaryPlayer)player).getHandle().bq();
+            }
+            return 0;
         }
         @Override
         public DynmapLocation getBedSpawnLocation() {
@@ -1103,9 +1111,6 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
     
     private boolean onplace;
     private boolean onbreak;
-    //private boolean onblockform;
-    //private boolean onblockfade;
-    //private boolean onblockspread;
     private boolean onblockfromto;
     private boolean onblockphysics;
     private boolean onleaves;
@@ -1128,9 +1133,6 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         onbreak = core.isTrigger("blockbreak");
         onleaves = core.isTrigger("leavesdecay");
         onburn = core.isTrigger("blockburn");
-        //onblockform = core.isTrigger("blockformed");
-        //onblockfade = core.isTrigger("blockfaded");
-        //onblockspread = core.isTrigger("blockspread");
         onblockfromto = core.isTrigger("blockfromto");
         onblockphysics = core.isTrigger("blockphysics");
         onpiston = core.isTrigger("pistonmoved");
@@ -1138,6 +1140,11 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         onstructuregrow = core.isTrigger("structuregrow");
         onblockupdate = core.isTrigger("blockupdate");
         onliquiddestroy = core.isTrigger("liquiddestroy");
+        onplayermove = core.isTrigger("playermove");
+        onblockgrow = core.isTrigger("blockgrow");
+        onplayerjoin = core.isTrigger("playerjoin");
+        onexplosion = core.isTrigger("explosion");
+        ongeneratechunk = core.isTrigger("chunkgenerated");
         
         if(onplace) {
             Canary.hooks().registerListener(new OurBlockPlaceTrigger(), this);
@@ -1171,47 +1178,6 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
             Canary.hooks().registerListener(new OurPistonTrigger(), this);
         }
         
-        //if(onblockspread) {
-        //    Listener spreadlistener = new Listener() {
-        //        @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
-        //        public void onBlockSpread(BlockSpreadEvent event) {
-        //            Location loc = event.getBlock().getLocation();
-        //            String wn = getWorld(loc.getWorld()).getName();
-        //            sscache.invalidateSnapshot(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-        //            mapManager.touch(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), "blockspread");
-        //        }
-        //    };
-        //    pm.registerEvents(spreadlistener, this);
-        //}
-        
-        //if(onblockform) {
-        //    Listener formlistener = new Listener() {
-        //        @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
-        //        public void onBlockForm(BlockFormEvent event) {
-        //            Location loc = event.getBlock().getLocation();
-        //            String wn = getWorld(loc.getWorld()).getName();
-        //            sscache.invalidateSnapshot(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-        //            mapManager.touch(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), "blockform");
-        //        }
-        //    };
-        //    pm.registerEvents(formlistener, this);
-        //}
-        
-        //if(onblockfade) {
-        //    Listener fadelistener = new Listener() {
-        //        @EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
-        //        public void onBlockFade(BlockFadeEvent event) {
-        //            Location loc = event.getBlock().getLocation();
-        //            String wn = getWorld(loc.getWorld()).getName();
-        //            sscache.invalidateSnapshot(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-        //            mapManager.touch(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), "blockfade");
-        //        }
-        //    };
-        //    pm.registerEvents(fadelistener, this);
-        //}
-        
-        onblockgrow = core.isTrigger("blockgrow");
-        
         if(onblockgrow) {
             Canary.hooks().registerListener(new OurBlockGrowTrigger(), this);
         }
@@ -1221,7 +1187,6 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         }
         
         /* Register player event trigger handlers */
-        onplayerjoin = core.isTrigger("playerjoin");
         if (onplayerjoin) {
             Canary.hooks().registerListener(new OurPlayerJoinTrigger(), this);
         }
@@ -1230,21 +1195,17 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         if (onblockupdate) {
             Canary.hooks().registerListener(new OurBlockUpdateTrigger(), this);
         }
-        onplayermove = core.isTrigger("playermove");
         
         if(onplayermove) {
             Canary.hooks().registerListener(new OurPlayerMoveTrigger(), this);
             Log.warning("playermove trigger enabled - this trigger can cause excessive tile updating: use with caution");
         }
         /* Register entity event triggers */
-        onexplosion = core.isTrigger("explosion");
         Canary.hooks().registerListener(new OurEntityTrigger(), this);
         
         // To link configuration to real loaded worlds.
         Canary.hooks().registerListener(new OurWorldTrigger(), this);
 
-
-        ongeneratechunk = core.isTrigger("chunkgenerated");
         if(ongeneratechunk) {
             Canary.hooks().registerListener(new OurChunkTrigger(), this);
         }
