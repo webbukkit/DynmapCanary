@@ -1,4 +1,4 @@
-# All paths in this configuration file are relative to Dynmap's data-folder: minecraft_server/plugins/dynmap/
+# All paths in this configuration file are relative to Dynmap's data-folder: minecraft_server/config/dynmap/
 
 # All map templates are defined in the templates directory
 # To use the HDMap very-low-res (2 ppb) map templates as world defaults, set value to vlowres
