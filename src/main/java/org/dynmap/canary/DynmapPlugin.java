@@ -2,15 +2,10 @@ package org.dynmap.canary;
 
 import java.io.File;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -305,7 +300,7 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         }
         @Override
         public String getServerName() {
-            return Configuration.getServerConfig().getMotd();
+            return Canary.getServer().getName();
         }
         @Override
         public boolean isPlayerBanned(String pid) {
@@ -519,7 +514,6 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
             return null;
         }
 
-
         @Override
         public double getServerTPS() {
             return Canary.getServer().getTicksPerSecond();
@@ -680,12 +674,30 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         }
         @Override
         public long getLastLoginTime() {
-            //return player.getLastJoined();
+            if(player != null) {
+                DateFormat format = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+                Date lastJoined = null;
+                try {
+                    lastJoined = format.parse(player.getLastJoined());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return lastJoined.getTime();
+            }
             return 0;
         }
         @Override
         public long getFirstLoginTime() {
-            //return player.getFirstPlayed();
+            if(player != null) {
+                DateFormat format = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+                Date firstJoined = null;
+                try {
+                    firstJoined = format.parse(player.getFirstJoined());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return firstJoined.getTime();
+            }
             return 0;
         }
         @Override
@@ -843,8 +855,7 @@ public class DynmapPlugin extends Plugin implements DynmapCommonAPI {
         version = getVersion();
 
         /* Get MC version */
-        String canaryver = Canary.getServer().getCanaryModVersion();
-        String mcver = canaryver.split("-")[0];
+        String mcver = Canary.getSpecificationVersion();
         
         /* Load extra biomes, if any */
         loadExtraBiomes(mcver);
