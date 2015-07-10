@@ -23,6 +23,7 @@ public class CanaryVersionHelper {
     }
     /**
      * Get list of defined biomebase objects
+     * @return biomes
      */
     public Biome[] getBiomeBaseList() {
         BiomeGenBase[] blist = BiomeGenBase.n();
@@ -35,12 +36,15 @@ public class CanaryVersionHelper {
     }
     /**
      * Get ID string from biomebase
+     * @param bb - biome
+     * @return biome name
      */
     public String getBiomeBaseIDString(Biome bb) {
         return ((net.canarymod.api.world.CanaryBiome)bb).getHandle().ah;
     }
     /**
      * Get block short name list
+     * @return block names
      */
     public String[] getBlockShortNames() {
         String[] lst = new String[4096];
@@ -57,6 +61,7 @@ public class CanaryVersionHelper {
     }
     /**
      * Get biome name list
+     * @return biome names
      */
     public String[] getBiomeNames() {
         BiomeGenBase[] bb = BiomeGenBase.n();
@@ -70,6 +75,7 @@ public class CanaryVersionHelper {
     }
     /**
      * Get block material index list
+     * @return index list
      */
     public int[] getBlockMaterialMap() {
         int[] lst = new int[4096];

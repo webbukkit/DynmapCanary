@@ -51,6 +51,8 @@ public class SnapshotCache {
 
     /**
      * Create snapshot cache
+     * @param max_size - max size
+     * @param softref - use soft references
      */
     public SnapshotCache(int max_size, boolean softref) {
         snapcache = new CacheHashMap(max_size);
@@ -62,6 +64,10 @@ public class SnapshotCache {
     }
     /**
      * Invalidate cached snapshot, if in cache
+     * @param w - world
+     * @param x - X coord
+     * @param y - Y coord
+     * @param z - Z coord
      */
     public void invalidateSnapshot(String w, int x, int y, int z) {
         String key = getKey(w, x>>4, z>>4);
@@ -76,6 +82,13 @@ public class SnapshotCache {
     }
     /**
      * Invalidate cached snapshot, if in cache
+     * @param w - world
+     * @param x0 - low X coord
+     * @param y0 - low Y coord
+     * @param z0 - low Z coord
+     * @param x1 - high X coord
+     * @param y1 - high Y coord
+     * @param z1 - high Z coord
      */
     public void invalidateSnapshot(String w, int x0, int y0, int z0, int x1, int y1, int z1) {
         for(int xx = (x0>>4); xx <= (x1>>4); xx++) {
@@ -94,6 +107,14 @@ public class SnapshotCache {
     }
     /**
      * Look for chunk snapshot in cache
+     * @param w - world
+     * @param chunkx - chunk X coord
+     * @param chunkz - chunk Z coord
+     * @param blockdata - need block data
+     * @param biome - need biome data
+     * @param biomeraw - need raw biome data
+     * @param highesty - need highest Y data
+     * @return snapshot, or null if not found
      */
     public SnapshotRec getSnapshot(String w, int chunkx, int chunkz, 
             boolean blockdata, boolean biome, boolean biomeraw, boolean highesty) {
@@ -126,6 +147,14 @@ public class SnapshotCache {
     }
     /**
      * Add chunk snapshot to cache
+     * @param w - world
+     * @param chunkx - chunk X coord
+     * @param chunkz - chunk Z coord
+     * @param ss - snapshot
+     * @param blockdata - includes blockdata
+     * @param biome - includes biome
+     * @param biomeraw - includes biome raw data
+     * @param highesty - includes max y 
      */
     public void putSnapshot(String w, int chunkx, int chunkz, SnapshotRec ss, 
             boolean blockdata, boolean biome, boolean biomeraw, boolean highesty) {
@@ -164,6 +193,7 @@ public class SnapshotCache {
     }
     /**
      * Get hit rate (percent)
+     * @return hit rate
      */
     public double getHitRate() {
         if(cache_attempts > 0) {

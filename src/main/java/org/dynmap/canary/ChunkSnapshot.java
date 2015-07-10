@@ -39,9 +39,11 @@ public class ChunkSnapshot
 
     /**
      * Construct empty chunk snapshot
-     *
-     * @param x
-     * @param z
+     * @param worldheight - world height
+     * @param x - x coord
+     * @param z - z coord
+     * @param captime - capture time
+     * @param inhabitedTime - inhabited time
      */
     public ChunkSnapshot(int worldheight, int x, int z, long captime, long inhabitedTime)
     {

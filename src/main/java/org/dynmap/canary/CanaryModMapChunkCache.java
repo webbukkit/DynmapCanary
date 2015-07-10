@@ -1337,7 +1337,7 @@ public class CanaryModMapChunkCache extends MapChunkCache
     
     /** 
      * Read NBT data from loaded chunks - needs to be called from server/world thread to be safe
-     * @returns number loaded
+     * @return number loaded
      */
     public int getLoadedChunks() {
         int cnt = 0;
